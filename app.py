@@ -2,12 +2,12 @@ import json
 
 from chalice import Chalice
 
-from chalicelib.trie import TrieNode, TrieBase
+from chalicelib.trie import TrieBase
 
 app = Chalice(app_name='wordbase-helper-backend')
 
 
-def get_dictionary() -> TrieNode:
+def get_dictionary() -> TrieBase:
     data = json.loads(open('./chalicelib/data/words_dictionary.json').read())
     root = TrieBase()
 

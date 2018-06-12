@@ -5,23 +5,22 @@ class TrieNode(object):
         self.children = []
         self.word_finished = False
         self.counter = 1
+        self.word = None
 
     def __str__(self) -> str:
         return self.char
 
 
-class TrieBase(object):
+class TrieBase(TrieNode):
 
     def __init__(self) -> None:
-        self.char = '*'
-        self.children = []
-        self.word_finished = False
+        super().__init__('*')
 
     def __str__(self):
         return self.char
 
     def add(self, word: str) -> None:
-        print('Adding {0}'.format(word))
+        # print('Adding {0}'.format(word))
         current_node = self
 
         for char in word:
@@ -40,3 +39,18 @@ class TrieBase(object):
                 current_node = new_child
 
         current_node.word_finished = True
+        current_node.word = word
+
+    def _is_word_exists(self, word: str) -> bool:
+
+        top_node = self
+
+        for letter in word:
+            child = next((x for x in top_node.children if letter == x.char), None)
+
+            if child is not None:
+                top_node = child
+            else:
+                return False
+
+        return top_node.word == word
