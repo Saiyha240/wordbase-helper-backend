@@ -41,8 +41,7 @@ class TrieBase(TrieNode):
         current_node.word_finished = True
         current_node.word = word
 
-    def _is_word_exists(self, word: str) -> bool:
-
+    def find_word_node(self, word: str) -> TrieNode:
         top_node = self
 
         for letter in word:
@@ -51,6 +50,16 @@ class TrieBase(TrieNode):
             if child is not None:
                 top_node = child
             else:
-                return False
+                return None
 
-        return top_node.word == word
+        return top_node
+
+    def word_has_children(self, prefix) -> bool:
+        word_node = self.find_word_node(prefix)
+
+        return word_node.children
+
+    def is_word_exists(self, word: str) -> bool:
+        word_node = self.find_word_node(word)
+
+        return word_node.word == word

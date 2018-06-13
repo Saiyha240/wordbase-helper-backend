@@ -1,3 +1,5 @@
+import copy
+
 from chalicelib.trie import TrieBase
 
 
@@ -18,7 +20,7 @@ class Tile(object):
                 adj_x = self.x + i
                 adj_y = self.y + j
 
-                if (i != 0 or j != 0) and (0 <= adj_x <= column_count and 0 <= adj_y <= row_count):
+                if (i != 0 or j != 0) and (0 <= adj_x < column_count and 0 <= adj_y < row_count):
                     self.adjacent_tiles.append((adj_x, adj_y))
 
     @property
@@ -31,11 +33,12 @@ class Word(object):
     def __init__(self) -> None:
         self.letters = []
 
-    def get_word(self):
-        return ''.join(letter.char for letter in self.letters)
-
     def __str__(self) -> str:
-        return self.get_word()
+        return self.plain
+
+    @property
+    def plain(self):
+        return ''.join(letter.char for letter in self.letters)
 
 
 class WordBase(object):
@@ -51,6 +54,8 @@ class WordBase(object):
 
         self._set_tiles()
         self._mark_tiles()
+
+        self.print()
 
     def _set_tiles(self):
         for row_num in range(0, self.rows):
@@ -74,5 +79,34 @@ class WordBase(object):
 
                 str_out = '-{0}- ' if tile.marked else '({0}) '
 
-                print(str_out.format(self.tiles[(row, column)]), end='')
+                print(str_out.format(tile), end='')
             print()
+
+    def _add_word(self, word: Word) -> None:
+        if not any(x.plain == word.plain for x in self.words):
+            self.words.append(copy.deepcopy(word))
+
+    def solve(self, tile: Tile, word: Word = None):
+        if word is None:
+            word = Word()
+            word.letters.append(tile)
+
+        adjacent_tiles = [self.tiles[tile] for tile in tile.adjacent_tiles if
+                          tile not in [tile.position for tile in word.letters]]
+
+        for adj_tile in adjacent_tiles:
+            if len(word.letters) > 1:
+                word_node = self.dictionary.find_word_node(word.plain)
+                if word_node is not None:
+                    if word_node.word is not None:
+                        self._add_word(word)
+
+                    if not word_node.children:
+                        continue
+                else:
+                    continue
+
+            next_word = copy.deepcopy(word)
+            next_word.letters.append(adj_tile)
+
+            self.solve(adj_tile, next_word)
