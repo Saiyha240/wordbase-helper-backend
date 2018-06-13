@@ -4,6 +4,7 @@ import time
 from chalice import Chalice
 
 from chalicelib.trie import TrieBase
+from chalicelib.wordbase import WordBase
 
 app = Chalice(app_name='wordbase-helper-backend')
 
@@ -26,6 +27,6 @@ def get_dictionary() -> TrieBase:
 def index():
     request = app.current_request.json_body
 
-    dictionary = get_dictionary()
+    wb = WordBase(request['cellsString'], request['markedMap'], get_dictionary())
 
-    return {'hello': 'world'}
+    return wb.get_answers()

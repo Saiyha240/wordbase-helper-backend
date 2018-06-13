@@ -36,6 +36,12 @@ class Word(object):
     def __str__(self) -> str:
         return self.plain
 
+    def json(self) -> dict:
+        return {
+            'word': self.plain,
+            'letters': [{'letter': letter.char, 'y': letter.y, 'x': letter.x} for letter in self.letters]
+        }
+
     @property
     def plain(self):
         return ''.join(letter.char for letter in self.letters)
@@ -57,6 +63,19 @@ class WordBase(object):
 
         self.print()
 
+    def print(self):
+        for row in range(self.rows):
+            for column in range(self.columns):
+                tile = self.tiles[(column, row)]
+
+                str_out = '-{0}- ' if tile.marked else '({0}) '
+
+                print(str_out.format(tile), end='')
+            print()
+
+    def get_answers(self):
+        return [word.json() for word in self.words]
+
     def _set_tiles(self):
         for row_num in range(0, self.rows):
             for col_num in range(0, self.columns):
@@ -70,23 +89,15 @@ class WordBase(object):
     def _mark_tiles(self):
         for marked in self.marked_map:
             if (marked['xCoor'], marked['yCoor']) in self.tiles:
-                self.tiles[(marked['xCoor'], marked['yCoor'])].marked = True
-
-    def print(self):
-        for row in range(self.rows):
-            for column in range(self.columns):
-                tile = self.tiles[(column, row)]
-
-                str_out = '-{0}- ' if tile.marked else '({0}) '
-
-                print(str_out.format(tile), end='')
-            print()
+                tile = self.tiles[(marked['xCoor'], marked['yCoor'])]
+                tile.marked = True
+                self._solve_tile(tile)
 
     def _add_word(self, word: Word) -> None:
         if not any(x.plain == word.plain for x in self.words):
             self.words.append(copy.deepcopy(word))
 
-    def solve(self, tile: Tile, word: Word = None):
+    def _solve_tile(self, tile: Tile, word: Word = None):
         if word is None:
             word = Word()
             word.letters.append(tile)
@@ -109,4 +120,4 @@ class WordBase(object):
             next_word = copy.deepcopy(word)
             next_word.letters.append(adj_tile)
 
-            self.solve(adj_tile, next_word)
+            self._solve_tile(adj_tile, next_word)
