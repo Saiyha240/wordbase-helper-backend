@@ -1,3 +1,7 @@
+import json
+import time
+
+
 class TrieNode(object):
 
     def __init__(self, char: str) -> None:
@@ -15,6 +19,15 @@ class TrieBase(TrieNode):
 
     def __init__(self) -> None:
         super().__init__('*')
+
+        start_time = time.time()
+
+        data = json.loads(open('./chalicelib/data/words_dictionary.json').read())
+
+        for word in data.keys():
+            self.add(word)
+
+        print("--- Initialized Trie in %s seconds ---" % (time.time() - start_time))
 
     def __str__(self):
         return self.char

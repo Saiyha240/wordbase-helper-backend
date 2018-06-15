@@ -1,4 +1,5 @@
 import copy
+import time
 
 from chalicelib.trie import TrieBase
 
@@ -91,7 +92,10 @@ class WordBase(object):
             if (marked['xCoor'], marked['yCoor']) in self.tiles:
                 tile = self.tiles[(marked['xCoor'], marked['yCoor'])]
                 tile.marked = True
+                start_time = time.time()
                 self._solve_tile(tile)
+                print("--- Solution for {0} at ({1}, {2}) in {3} seconds ---".format(tile.char, tile.x, tile.y,
+                                                                                     (time.time() - start_time)))
 
     def _add_word(self, word: Word) -> None:
         if not any(x.plain == word.plain for x in self.words):
@@ -102,21 +106,21 @@ class WordBase(object):
             word = Word()
             word.letters.append(tile)
 
+        if len(word.letters) > 1:
+            word_node = self.dictionary.find_word_node(word.plain)
+            if word_node is not None:
+                if word_node.word is not None:
+                    self._add_word(word)
+
+                if not word_node.children:
+                    return
+            else:
+                return
+
         adjacent_tiles = [self.tiles[tile] for tile in tile.adjacent_tiles if
                           tile not in [tile.position for tile in word.letters]]
 
         for adj_tile in adjacent_tiles:
-            if len(word.letters) > 1:
-                word_node = self.dictionary.find_word_node(word.plain)
-                if word_node is not None:
-                    if word_node.word is not None:
-                        self._add_word(word)
-
-                    if not word_node.children:
-                        continue
-                else:
-                    continue
-
             next_word = copy.deepcopy(word)
             next_word.letters.append(adj_tile)
 
