@@ -117,8 +117,8 @@ class WordBase(object):
             else:
                 return
 
-        adjacent_tiles = [self.tiles[tile] for tile in tile.adjacent_tiles if
-                          tile not in [tile.position for tile in word.letters]]
+        adjacent_tiles = [self.tiles[adj_tile] for adj_tile in tile.adjacent_tiles if
+                          not any(adj_tile == tile.position for tile in word.letters)]
 
         for adj_tile in adjacent_tiles:
             next_word = copy.deepcopy(word)

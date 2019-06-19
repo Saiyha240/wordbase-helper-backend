@@ -7,12 +7,41 @@ class TrieNode(object):
     def __init__(self, char: str) -> None:
         self.char = char
         self.children = []
-        self.word_finished = False
-        self.counter = 1
         self.word = None
+
+    def add_child(self, child: 'TrieNode') -> None:
+        self.children.append(child)
+
+    def get_child(self, char: [str, 'TrieNode']) -> 'TrieNode':
+        try:
+            return self.children[self.children.index(char)]
+        except ValueError:
+            return None
+
+    def set_word(self, word: str) -> None:
+        self.word = word
+
+    def has_word(self) -> bool:
+        return self.word is not None
 
     def __str__(self) -> str:
         return self.char
+
+    def __eq__(self, o: object) -> bool:
+        if isinstance(o, self.__class__):
+            return self.char == o.char
+        elif isinstance(o, str):
+            return self.char == o
+
+        return super().__eq__(o)
+
+    def __ne__(self, o: object) -> bool:
+        if isinstance(o, self.__class__):
+            return self.char != o.char
+        elif isinstance(o, str):
+            return self.char != o
+
+        return super().__ne__(o)
 
 
 class TrieBase(TrieNode):
@@ -37,28 +66,21 @@ class TrieBase(TrieNode):
         current_node = self
 
         for char in word:
-            found_in_child = False
+            if char in current_node.children:
+                child = current_node.get_child(char)
+            else:
+                child = TrieNode(char)
+                current_node.add_child(child)
 
-            for child in current_node.children:
-                if child.char == char:
-                    found_in_child = True
-                    child.counter += 1
-                    current_node = child
-                    break
+            current_node = child
 
-            if not found_in_child:
-                new_child = TrieNode(char)
-                current_node.children.append(new_child)
-                current_node = new_child
-
-        current_node.word_finished = True
-        current_node.word = word
+        current_node.set_word(word)
 
     def find_word_node(self, word: str) -> TrieNode:
         top_node = self
 
         for letter in word:
-            child = next((x for x in top_node.children if letter == x.char), None)
+            child = top_node.get_child(letter)
 
             if child is not None:
                 top_node = child
