@@ -6,9 +6,7 @@ class TrieNode(object):
 
     def __init__(self, char: str) -> None:
         self.char = char
-        self.children = []
-        self.word_finished = False
-        self.counter = 1
+        self.children = {}
         self.word = None
 
     def __str__(self) -> str:
@@ -20,59 +18,50 @@ class TrieBase(TrieNode):
     def __init__(self) -> None:
         super().__init__('*')
 
-        start_time = time.time()
-
-        data = json.loads(open('./chalicelib/data/words_dictionary.json').read())
-
-        for word in data.keys():
-            self.add(word)
-
-        print("--- Initialized Trie in %s seconds ---" % (time.time() - start_time))
+        self.populate()
 
     def __str__(self):
         return self.char
 
+    def populate(self) -> None:
+        data = json.loads(open('./chalicelib/data/words_dictionary.json').read())
+        start_time = time.time()
+
+        for word in data:
+            self.add(word)
+
+        print("--- Initialized Trie in %s seconds ---" % (time.time() - start_time))
+
     def add(self, word: str) -> None:
-        # print('Adding {0}'.format(word))
         current_node = self
 
         for char in word:
-            found_in_child = False
+            if char in current_node.children:
+                child = current_node.children[char]
+            else:
+                child = TrieNode(char)
+                current_node.children[char] = child
 
-            for child in current_node.children:
-                if child.char == char:
-                    found_in_child = True
-                    child.counter += 1
-                    current_node = child
-                    break
+            current_node = child
 
-            if not found_in_child:
-                new_child = TrieNode(char)
-                current_node.children.append(new_child)
-                current_node = new_child
-
-        current_node.word_finished = True
         current_node.word = word
 
     def find_word_node(self, word: str) -> TrieNode:
         top_node = self
 
-        for letter in word:
-            child = next((x for x in top_node.children if letter == x.char), None)
-
-            if child is not None:
-                top_node = child
+        for char in word:
+            if char in top_node.children:
+                top_node = top_node.children[char]
             else:
                 return None
 
         return top_node
 
-    def word_has_children(self, prefix) -> bool:
-        word_node = self.find_word_node(prefix)
-
-        return word_node.children
-
     def is_word_exists(self, word: str) -> bool:
+        word = word.lower()
         word_node = self.find_word_node(word)
 
-        return word_node.word == word
+        if word_node and word_node.word == word:
+            return True
+
+        return False
